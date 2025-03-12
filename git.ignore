@@ -1,0 +1,57 @@
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore user-specific files
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Ignore NuGet packages and restore files
+packages/
+*.nupkg
+nuget.exe
+
+# Ignore local development files
+*.swp
+*.swo
+*.log
+*.cache
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+*.code-workspace
+
+# Ignore output files
+*.exe
+*.dll
+*.pdb
+*.xml
+
+# Ignore local configuration files
+appsettings.json
+appsettings.Development.json
+
+# Ignore generated files
+*.generated.cs
+
+# Ignore test results
+TestResults/
+*.trx
+
+# Ignore macOS files
+.DS_Store
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore logs and diagnostics
+logs/
+*.log
+*.etl
+
+# Ignore local storage files
+tasks.json
