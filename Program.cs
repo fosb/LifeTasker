@@ -107,14 +107,20 @@ namespace LifePlanner
             };
             btnAdd.Clicked += () => ShowTaskDialog(null);
 
-            var btnQuit = new Button("Quit (Ctrl+Q)")
+            var btnSave = new Button("Save Tasks (Ctrl+S")
             {
                 X = Pos.Right(btnAdd) + 2,
                 Y = 0
             };
+
+            var btnQuit = new Button("Quit (Ctrl+Q)")
+            {
+                X = Pos.Right(btnSave) + 2,
+                Y = 0
+            };
             btnQuit.Clicked += () => Application.RequestStop();
 
-            controlsFrame.Add(btnAdd, btnQuit);
+            controlsFrame.Add(btnAdd, btnSave, btnQuit);
 
             win.Add(controlsFrame);
         }
