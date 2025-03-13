@@ -32,30 +32,20 @@ namespace LifePlanner
                 Height = Dim.Fill()
             };
 
-            var tableView = new TableView()
-            {
-                X = 0,
-                Y = 0,
-                Width = Dim.Fill(),
-                Height = Dim.Fill() - 3 // Leave space for controls
-            };
+            SetupTables();
 
-            win.Add(tableView);
+            win.Add(_taskTableView, _priorityTableView);
 
-            SetupTables(tableView);
-
-            win.Add(tableView);
-
-            SetupControls(win, tableView);
+            SetupControls(win);
             SetupColors();
-            SetupKeyboardShortcuts(tableView);
-            SetupAutoRefresh(tableView);
+            SetupKeyboardShortcuts();
+            SetupAutoRefresh();
 
             top.Add(win);
             Application.Run();
         }
 
-        private static void SetupTables(TableView tableView)
+        private static void SetupTables()
         {
             // Task Table
             _taskTableView = new TableView
@@ -65,7 +55,7 @@ namespace LifePlanner
                 Width = Dim.Percent(70),
                 Height = Dim.Fill() - 3
             };
-            UpdateTaskTable(tableView);
+            UpdateTaskTable();
 
             // Priority Table
             _priorityTableView = new TableView
@@ -73,12 +63,12 @@ namespace LifePlanner
                 X = Pos.Right(_taskTableView),
                 Y = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill() - 1
+                Height = Dim.Fill() - 3
             };
             UpdatePriorityTable();
         }
 
-        private static void UpdateTaskTable(TableView tableView)
+        private static void UpdateTaskTable()
         {
             // Initialize the DataTable
             var dt = new DataTable();
@@ -97,10 +87,10 @@ namespace LifePlanner
             }
 
             // Assign the DataTable to the TableView
-            tableView.Table = dt;
+            _taskTableView.Table = dt;
         }
 
-        private static void SetupControls(Window win, TableView tableView)
+        private static void SetupControls(Window win)
         {
             var controlsFrame = new FrameView("Controls")
             {
@@ -150,7 +140,7 @@ namespace LifePlanner
             };
         }
 
-        private static void SetupKeyboardShortcuts(TableView tableView)
+        private static void SetupKeyboardShortcuts()
         {
             Application.Top.KeyPress += e =>
             {
@@ -159,12 +149,12 @@ namespace LifePlanner
                     switch (e.KeyEvent.Key)
                     {
                         case Key.N:
-                            ShowTaskDialog(tableView);
+                            ShowTaskDialog();
                             e.Handled = true;
                             break;
                         case Key.S:
                             Storage.SaveData(_tasks);
-                            UpdateTaskTable(tableView);
+                            UpdateTaskTable();
                             UpdatePriorityTable();
                             e.Handled = true;
                             break;
@@ -177,12 +167,12 @@ namespace LifePlanner
             };
         }
 
-        private static void SetupAutoRefresh(TableView tableView)
+        private static void SetupAutoRefresh()
         {
             Application.MainLoop.AddTimeout(TimeSpan.FromMinutes(1), _ =>
             {
                 PriorityManager.CheckDeadlines(_tasks);
-                UpdateTaskTable(tableView);
+                UpdateTaskTable();
                 UpdatePriorityTable();
                 return true;
             });
@@ -210,7 +200,7 @@ namespace LifePlanner
             _priorityTableView.Update();
         }
 
-        private static void ShowTaskDialog(TableView tableView, LifeTask? existingTask = null)
+        private static void ShowTaskDialog(LifeTask? existingTask = null)
         {
             var isNew = existingTask == null;
             var task = existingTask ?? new LifeTask();
@@ -271,7 +261,7 @@ namespace LifePlanner
                 if (isNew) _tasks.Add(task);
 
                 Storage.SaveData(_tasks);
-                UpdateTaskTable(tableView);
+                UpdateTaskTable();
                 UpdatePriorityTable();
                 Application.RequestStop();
             };
