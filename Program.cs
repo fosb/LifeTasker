@@ -3,6 +3,7 @@ using LifeTasker.Services;
 using LifeTasker.Utilities;
 using System.Data;
 using LifeTasker.Models;
+using System.Threading.Tasks;
 
 namespace LifePlanner
 {
@@ -73,21 +74,32 @@ namespace LifePlanner
             // Initialize the DataTable
             var dt = new DataTable();
             dt.Columns.Add("Title", typeof(string));
-            dt.Columns.Add("Priority", typeof(string));
+            dt.Columns.Add("Priority", typeof(Priority));
             dt.Columns.Add("Deadline", typeof(string));
 
             // Populate the DataTable with tasks
-            for (int i = 0; i < _tasks.Count; i++)
+            foreach (var task in _tasks)
             {
-                var task = _tasks[i];
                 dt.Rows.Add(
                     task.Title,
-                    task.Priority.ToString(),
+                    task.Priority,
                     task.Deadline.ToString("yyyy-MM-dd"));
             }
 
             // Assign the DataTable to the TableView
             _taskTableView.Table = dt;
+
+            // Apply styling to the rows
+            foreach (DataColumn column in dt.Columns)
+            {
+                var columnStyle = _taskTableView.Style.GetOrCreateColumnStyle(column);
+                columnStyle.ColorGetter = data =>
+                {
+                    var row = data.Table.Rows[data.RowIndex];
+                    var priority = (Priority)row["Priority"];
+                    return GetPriorityColor(priority);
+                };
+            }
         }
 
         private static void SetupControls(Window win)
@@ -136,13 +148,13 @@ namespace LifePlanner
         {
             return priority switch
             {
-                Priority.Extreme => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.BrightRed, Color.Black) },
-                Priority.Urgent => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.Red, Color.Black) },
-                Priority.High => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.BrightYellow, Color.Black) },
-                Priority.Medium => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.Green, Color.Black) },
-                Priority.Low => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.Blue, Color.Black) },
-                Priority.Minimum => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.Gray, Color.Black) },
-                _ => new ColorScheme { Normal = new Terminal.Gui.Attribute(Color.White, Color.Black) }
+                Priority.Extreme => CreateFullScheme(Color.BrightRed),
+                Priority.Urgent => CreateFullScheme(Color.Red),
+                Priority.High => CreateFullScheme(Color.BrightYellow),
+                Priority.Medium => CreateFullScheme(Color.Green),
+                Priority.Low => CreateFullScheme(Color.Blue),
+                Priority.Minimum => CreateFullScheme(Color.Gray),
+                _ => CreateFullScheme(Color.White)
             };
         }
 
@@ -199,6 +211,7 @@ namespace LifePlanner
                     $"{task.PriorityScore:F1}%",
                     task.Deadline.ToString("yyyy-MM-dd"));
 
+                // Apply styling to the row
                 _priorityTableView.SetStyle(dt.Rows.IndexOf(row), GetPriorityColor(task.Priority));
             }
 
@@ -282,5 +295,19 @@ namespace LifePlanner
 
             Application.Run(dialog);
         }
+
+        private static ColorScheme CreateFullScheme(Color color)
+        {
+            return new ColorScheme
+            {
+                Normal = MakeAttr(color, Color.Black),
+                HotNormal = MakeAttr(color, Color.Black),
+                Focus = MakeAttr(color, Color.Black),
+                HotFocus = MakeAttr(color, Color.Black),
+
+            };
+        }
+
+        private static Terminal.Gui.Attribute MakeAttr(Color fg, Color bg) => new Terminal.Gui.Attribute(fg, bg);
     }
 }
