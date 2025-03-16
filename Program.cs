@@ -74,8 +74,9 @@ namespace LifePlanner
             // Initialize the DataTable
             var dt = new DataTable();
             dt.Columns.Add("Title", typeof(string));
-            dt.Columns.Add("Priority", typeof(Priority));
+            dt.Columns.Add("Priority", typeof(string));
             dt.Columns.Add("Deadline", typeof(string));
+            dt.Columns.Add("Category", typeof(string));
 
             // Populate the DataTable with tasks
             foreach (var task in _tasks)
@@ -83,7 +84,8 @@ namespace LifePlanner
                 dt.Rows.Add(
                     task.Title,
                     task.Priority,
-                    task.Deadline.ToString("yyyy-MM-dd"));
+                    task.Deadline.ToString("yyyy-MM-dd"),
+                    task.Category.ToString());
             }
 
             // Assign the DataTable to the TableView
@@ -96,7 +98,7 @@ namespace LifePlanner
                 columnStyle.ColorGetter = data =>
                 {
                     var row = data.Table.Rows[data.RowIndex];
-                    var priority = (Priority)row["Priority"];
+                    String priority = row["Priority"].ToString();
                     return GetPriorityColor(priority);
                 };
             }
@@ -144,16 +146,16 @@ namespace LifePlanner
             Colors.Base.Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray);
         }
 
-        private static ColorScheme GetPriorityColor(Priority priority)
+        private static ColorScheme GetPriorityColor(String priority)
         {
             return priority switch
             {
-                Priority.Extreme => CreateFullScheme(Color.BrightRed),
-                Priority.Urgent => CreateFullScheme(Color.Red),
-                Priority.High => CreateFullScheme(Color.BrightYellow),
-                Priority.Medium => CreateFullScheme(Color.Green),
-                Priority.Low => CreateFullScheme(Color.Blue),
-                Priority.Minimum => CreateFullScheme(Color.Gray),
+                "Extreme" => CreateFullScheme(Color.BrightRed),
+                "Urgent" => CreateFullScheme(Color.Red),
+                "High" => CreateFullScheme(Color.BrightYellow),
+                "Medium" => CreateFullScheme(Color.Green),
+                "Low" => CreateFullScheme(Color.Blue),
+                "Minimum" => CreateFullScheme(Color.Gray),
                 _ => CreateFullScheme(Color.White)
             };
         }
@@ -202,7 +204,7 @@ namespace LifePlanner
             dt.Columns.Add("Priority Task", typeof(string));
             dt.Columns.Add("Score %", typeof(string));
             dt.Columns.Add("Deadline", typeof(string));
-            dt.Columns.Add("Priority", typeof(Priority));
+            dt.Columns.Add("Priority", typeof(string));
 
             var topTasks = PriorityManager.GetPriorityTasks(_tasks);
             foreach (var task in topTasks)
@@ -211,10 +213,7 @@ namespace LifePlanner
                     task.Title,
                     $"{task.PriorityScore:F1}%",
                     task.Deadline.ToString("yyyy-MM-dd"),
-                    task.Priority);
-
-                // Apply styling to the row
-                _priorityTableView.SetStyle(dt.Rows.IndexOf(row), GetPriorityColor(task.Priority));
+                    task.Priority.ToString());
             }
 
             // Apply styling to the rows
@@ -224,7 +223,7 @@ namespace LifePlanner
                 columnStyle.ColorGetter = data =>
                 {
                     var row = data.Table.Rows[data.RowIndex];
-                    var priority = (Priority)row["Priority"];
+                    String priority = row["Priority"].ToString();
                     return GetPriorityColor(priority);
                 };
             }
