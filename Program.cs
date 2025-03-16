@@ -202,6 +202,7 @@ namespace LifePlanner
             dt.Columns.Add("Priority Task", typeof(string));
             dt.Columns.Add("Score %", typeof(string));
             dt.Columns.Add("Deadline", typeof(string));
+            dt.Columns.Add("Priority", typeof(Priority));
 
             var topTasks = PriorityManager.GetPriorityTasks(_tasks);
             foreach (var task in topTasks)
@@ -209,10 +210,23 @@ namespace LifePlanner
                 var row = dt.Rows.Add(
                     task.Title,
                     $"{task.PriorityScore:F1}%",
-                    task.Deadline.ToString("yyyy-MM-dd"));
+                    task.Deadline.ToString("yyyy-MM-dd"),
+                    task.Priority);
 
                 // Apply styling to the row
                 _priorityTableView.SetStyle(dt.Rows.IndexOf(row), GetPriorityColor(task.Priority));
+            }
+
+            // Apply styling to the rows
+            foreach (DataColumn column in dt.Columns)
+            {
+                var columnStyle = _priorityTableView.Style.GetOrCreateColumnStyle(column);
+                columnStyle.ColorGetter = data =>
+                {
+                    var row = data.Table.Rows[data.RowIndex];
+                    var priority = (Priority)row["Priority"];
+                    return GetPriorityColor(priority);
+                };
             }
 
             _priorityTableView.Table = dt;
