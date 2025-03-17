@@ -11,8 +11,6 @@ namespace LifePlanner
     class Program
     {
         private static List<LifeTask> _tasks;
-        private static TableView _taskTableView;
-        private static TableView _priorityTableView;
 
         static void Main()
         {
@@ -25,8 +23,9 @@ namespace LifePlanner
             Application.Init();
             var top = Application.Top;
 
-            Window mainWindow = new MainWindow(_tasks, _taskTableView, _taskTableView);
+            Window mainWindow = new MainWindow(_tasks);
 
+            Application.Top.Add(mainWindow);
             Application.Run();
         }
     }
