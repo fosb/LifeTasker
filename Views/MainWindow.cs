@@ -11,16 +11,13 @@ namespace LifeTasker.Views
     {
         private TableView _taskTableView;
         private TableView _priorityTableView;
-        private Window _window;
         private List<LifeTask> _tasks;
 
-        public MainWindow(List<LifeTask> tasks, TableView taskTable, TableView priorityTable) : base("Life Planner")
+        public MainWindow(List<LifeTask> tasks) : base("Life Planner")
         {
             _tasks = tasks;
-            _taskTableView = taskTable;
-            _priorityTableView = priorityTable;
 
-            SetupMainView();
+            SetupMainWindow();
             SetupTables();
             SetupControls();
             SetupColors();
@@ -28,16 +25,13 @@ namespace LifeTasker.Views
             SetupAutoRefresh();
         }
 
-        private void SetupMainView()
+        private void SetupMainWindow()
         {
             // Create main window
-            _window = new Window("Life Planner")
-            {
-                X = 0,
-                Y = 1,
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
+            X = 0;
+            Y = 1;
+            Width = Dim.Fill();
+            Height = Dim.Fill();
         }
 
         private void SetupTables()
@@ -80,22 +74,16 @@ namespace LifeTasker.Views
             };
             btnAdd.Clicked += () => ShowTaskDialog(null);
 
-            var btnSave = new Button("Save Tasks (Ctrl+S")
+            var btnQuit = new Button("Quit (Ctrl+Q)")
             {
                 X = Pos.Right(btnAdd) + 2,
                 Y = 0
             };
-
-            var btnQuit = new Button("Quit (Ctrl+Q)")
-            {
-                X = Pos.Right(btnSave) + 2,
-                Y = 0
-            };
             btnQuit.Clicked += () => Application.RequestStop();
 
-            controlsFrame.Add(btnAdd, btnSave, btnQuit);
+            controlsFrame.Add(btnAdd, btnQuit);
 
-            _window.Add(controlsFrame);
+            this.Add(controlsFrame);
         }
 
         private void SetupColors()
@@ -169,6 +157,8 @@ namespace LifeTasker.Views
                     return GetPriorityColor(priority);
                 };
             }
+
+            this.Add(_taskTableView);
         }
 
         private ColorScheme GetPriorityColor(String priority)
@@ -216,6 +206,7 @@ namespace LifeTasker.Views
             }
 
             _priorityTableView.Table = dt;
+            this.Add(_priorityTableView);
             _priorityTableView.Update();
         }
 
