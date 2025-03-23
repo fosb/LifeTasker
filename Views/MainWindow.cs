@@ -9,13 +9,14 @@ namespace LifeTasker.Views
 {
     public class MainWindow : Window
     {
+        private readonly TaskViewModel _viewModel;
         private TableView _taskTableView;
         private TableView _priorityTableView;
-        private List<LifeTask> _tasks;
 
-        public MainWindow(List<LifeTask> tasks) : base("Life Planner")
+        public MainWindow(TaskViewModel viewModel) : base("Life Planner")
         {
-            _tasks = tasks;
+            _viewModel = viewModel;
+            _viewModel.DataUpdated += OnDataUpdated;
 
             SetupMainWindow();
             SetupTables();
@@ -117,7 +118,7 @@ namespace LifeTasker.Views
         {
             Application.MainLoop.AddTimeout(TimeSpan.FromMinutes(1), _ =>
             {
-                PriorityManager.CheckDeadlines(_tasks);
+                PriorityManager.CheckDeadlines(_viewModel.Tasks);
                 UpdateTaskTable();
                 UpdatePriorityTable();
                 return true;
@@ -134,7 +135,7 @@ namespace LifeTasker.Views
             dt.Columns.Add("Category", typeof(string));
 
             // Populate the DataTable with tasks
-            foreach (var task in _tasks)
+            foreach (var task in _viewModel.Tasks)
             {
                 dt.Rows.Add(
                     task.Title,
@@ -183,7 +184,7 @@ namespace LifeTasker.Views
             dt.Columns.Add("Deadline", typeof(string));
             dt.Columns.Add("Priority", typeof(string));
 
-            var topTasks = PriorityManager.GetPriorityTasks(_tasks);
+            var topTasks = PriorityManager.GetPriorityTasks(_viewModel.Tasks);
             foreach (var task in topTasks)
             {
                 var row = dt.Rows.Add(
@@ -268,9 +269,9 @@ namespace LifeTasker.Views
                 task.Category = (Category)categoryDropdown.SelectedItem;
                 task.Deadline = DateTime.Now.AddDays(PriorityManager.GetDaysForPriority(task.Priority));
 
-                if (isNew) _tasks.Add(task);
+                if (isNew) _viewModel.Tasks.Add(task);
 
-                Storage.SaveData(_tasks);
+                Storage.SaveData(_viewModel.Tasks);
                 UpdateTaskTable();
                 UpdatePriorityTable();
                 Application.RequestStop();
@@ -300,5 +301,11 @@ namespace LifeTasker.Views
         }
 
         private Terminal.Gui.Attribute MakeAttr(Color fg, Color bg) => new Terminal.Gui.Attribute(fg, bg);
+
+        private void OnDataUpdated()
+        {
+            UpdateTaskTable();
+            UpdatePriorityTable();
+        }
     }
 }
