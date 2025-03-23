@@ -8,6 +8,9 @@ namespace LifeTasker.Views
     {
         private readonly LifeTask _task;
         private readonly bool _isNew;
+        private TextField _titleField;
+        private ComboBox _priorityDropdown;
+        private ComboBox _categoryDropdown;
 
         public LifeTask Result { get; private set; }
 
@@ -27,7 +30,7 @@ namespace LifeTasker.Views
         {
             // Title Field
             var titleLabel = new Label("Title:") { X = 1, Y = 1 };
-            var titleField = new TextField(_task.Title ?? "")
+            _titleField = new TextField(_task.Title ?? "")
             {
                 X = 1,
                 Y = 2,
@@ -36,7 +39,7 @@ namespace LifeTasker.Views
 
             // Priority Dropdown
             var priorityLabel = new Label("Priority:") { X = 1, Y = 4 };
-            var priorityDropdown = new ComboBox()
+            _priorityDropdown = new ComboBox()
             {
                 X = 1,
                 Y = 5,
@@ -48,7 +51,7 @@ namespace LifeTasker.Views
 
             // Category Dropdown
             var categoryLabel = new Label("Category:") { X = 1, Y = 7 };
-            var categoryDropdown = new ComboBox()
+            _categoryDropdown = new ComboBox()
             {
                 X = 1,
                 Y = 8,
@@ -60,32 +63,29 @@ namespace LifeTasker.Views
 
             // Save Button
             var btnSave = new Button("Save") { X = 1, Y = 11 };
-            btnSave.Clicked += () => SaveTask(titleField, priorityDropdown, categoryDropdown);
+            btnSave.Clicked += () => SaveTask();
 
-            Add(titleLabel, titleField,
-                priorityLabel, priorityDropdown,
-                categoryLabel, categoryDropdown,
+            // Add all controls to the dialog
+            Add(titleLabel, _titleField,
+                priorityLabel, _priorityDropdown,
+                categoryLabel, _categoryDropdown,
                 btnSave);
         }
 
-        private void SaveTask(TextField titleField, ComboBox priorityDropdown, ComboBox categoryDropdown)
+        private void SaveTask()
         {
-            Result = new LifeTask
+            if (_titleField == null || _priorityDropdown == null || _categoryDropdown == null)
             {
-                Title = titleField.Text.ToString(),
-                Priority = (Priority)priorityDropdown.SelectedItem,
-                Category = (Category)categoryDropdown.SelectedItem,
-                Deadline = DateTime.Now.AddDays(PriorityManager.GetDaysForPriority((Priority)priorityDropdown.SelectedItem))
-            };
-
-            if (_isNew)
-            {
-                Application.RequestStop();
+                MessageBox.ErrorQuery("Error", "Dialog controls are not properly initialized.", "OK");
                 return;
             }
 
-            // Preserve existing task ID if editing
-            Result.Id = _task.Id;
+            Result = new LifeTask
+            {
+                Title = _titleField.Text.ToString(),
+                Priority = (Priority)_priorityDropdown.SelectedItem,
+                Category = (Category)_categoryDropdown.SelectedItem
+            };
             Application.RequestStop();
         }
     }

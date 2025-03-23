@@ -1,53 +1,50 @@
-﻿using LifeTasker.Models;
+﻿using System;
+using System.Collections.ObjectModel;
+using LifeTasker.Models;
 using LifeTasker.Services;
-using System.Collections.Generic;
-using System;
 
 namespace LifeTasker.ViewModels
 {
     public class TaskViewModel
     {
-        public List<LifeTask> Tasks { get; private set; }
-
-        public event Action DataUpdated;
+        public ObservableCollection<LifeTask> Tasks { get; }
+        public Command AddTaskCommand { get; }
+        public Command UpdateTaskCommand { get; }
 
         public TaskViewModel()
         {
-            LoadData();
+            Tasks = new ObservableCollection<LifeTask>(Storage.LoadData());
+            Tasks.CollectionChanged += (s, e) => SaveData();
+
+            AddTaskCommand = new Command(AddTask);
+            UpdateTaskCommand = new Command(UpdateTask);
         }
 
-        public void LoadData()
+        private void AddTask(object parameter)
         {
-            Tasks = Storage.LoadData();
-            PriorityManager.CheckDeadlines(Tasks);
-            Storage.SaveData(Tasks);
-        }
-
-        public void SaveData()
-        {
-            Storage.SaveData(Tasks);
-            DataUpdated?.Invoke();
-        }
-
-        public void AddTask(LifeTask task)
-        {
-            Tasks.Add(task);
-            SaveData();
-        }
-
-        public void UpdateTask(LifeTask existingTask, LifeTask newTask)
-        {
-            var index = Tasks.IndexOf(existingTask);
-            if (index >= 0)
+            if (parameter is LifeTask task)
             {
-                Tasks[index] = newTask;
-                SaveData();
+                Tasks.Add(task);
             }
+        }
+
+        private void UpdateTask(object parameter)
+        {
+            if (parameter is Tuple<LifeTask, LifeTask> tasks)
+            {
+                var index = Tasks.IndexOf(tasks.Item1);
+                if (index >= 0) Tasks[index] = tasks.Item2;
+            }
+        }
+
+        private void SaveData()
+        {
+            Storage.SaveData(Tasks.ToList());
         }
 
         public void CheckDeadlines()
         {
-            PriorityManager.CheckDeadlines(Tasks);
+            PriorityManager.CheckDeadlines(Tasks.ToList());
             SaveData();
         }
     }

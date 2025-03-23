@@ -16,7 +16,7 @@ namespace LifeTasker.Views
         public MainWindow(TaskViewModel viewModel) : base("Life Planner")
         {
             _viewModel = viewModel;
-            _viewModel.DataUpdated += OnDataUpdated;
+            _viewModel.Tasks.CollectionChanged += (s, e) => UpdateTables();
 
             SetupMainWindow();
             SetupTables();
@@ -68,12 +68,23 @@ namespace LifeTasker.Views
                 Height = 3
             };
 
+            // Declare btnAdd
             var btnAdd = new Button("Add Task (Ctrl+N)")
             {
                 X = 0,
                 Y = 0
             };
-            btnAdd.Clicked += () => ShowTaskDialog(null);
+
+            btnAdd.Clicked += () =>
+            {
+                var dialog = new TaskDialog();
+                Application.Run(dialog);
+
+                if (dialog.Result != null)
+                {
+                    _viewModel.AddTaskCommand.Execute(dialog.Result);
+                }
+            };
 
             var btnQuit = new Button("Quit (Ctrl+Q)")
             {
@@ -83,7 +94,6 @@ namespace LifeTasker.Views
             btnQuit.Clicked += () => Application.RequestStop();
 
             controlsFrame.Add(btnAdd, btnQuit);
-
             this.Add(controlsFrame);
         }
 
@@ -118,7 +128,7 @@ namespace LifeTasker.Views
         {
             Application.MainLoop.AddTimeout(TimeSpan.FromMinutes(1), _ =>
             {
-                PriorityManager.CheckDeadlines(_viewModel.Tasks);
+                PriorityManager.CheckDeadlines(_viewModel.Tasks.ToList());
                 UpdateTaskTable();
                 UpdatePriorityTable();
                 return true;
@@ -184,7 +194,7 @@ namespace LifeTasker.Views
             dt.Columns.Add("Deadline", typeof(string));
             dt.Columns.Add("Priority", typeof(string));
 
-            var topTasks = PriorityManager.GetPriorityTasks(_viewModel.Tasks);
+            var topTasks = PriorityManager.GetPriorityTasks(_viewModel.Tasks.ToList());
             foreach (var task in topTasks)
             {
                 var row = dt.Rows.Add(
@@ -271,7 +281,7 @@ namespace LifeTasker.Views
 
                 if (isNew) _viewModel.Tasks.Add(task);
 
-                Storage.SaveData(_viewModel.Tasks);
+                Storage.SaveData(_viewModel.Tasks.ToList());
                 UpdateTaskTable();
                 UpdatePriorityTable();
                 Application.RequestStop();
@@ -303,6 +313,12 @@ namespace LifeTasker.Views
         private Terminal.Gui.Attribute MakeAttr(Color fg, Color bg) => new Terminal.Gui.Attribute(fg, bg);
 
         private void OnDataUpdated()
+        {
+            UpdateTaskTable();
+            UpdatePriorityTable();
+        }
+
+        private void UpdateTables()
         {
             UpdateTaskTable();
             UpdatePriorityTable();
